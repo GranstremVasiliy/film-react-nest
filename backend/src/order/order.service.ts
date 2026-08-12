@@ -20,7 +20,7 @@ export class OrderService {
       throw new BadRequestException('Нет билетов в заказе');
     }
 
-    const { film, session, row, seat } = ticket;
+    const { film, session, row, seat, daytime, price } = ticket;
     const place = `${row}:${seat}`;
 
     const filmDoc = await this.filmModel.findOne({ id: film });
@@ -44,6 +44,8 @@ export class OrderService {
       session,
       row,
       seat,
+      daytime,
+      price,
     };
 
     return {
