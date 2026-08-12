@@ -39,12 +39,16 @@ export class OrderService {
 
     sessionDoc.taken.push(place);
     await filmDoc.save();
-    return {
+    const resultTicket = {
       film,
       session,
       row,
       seat,
-      taken: sessionDoc.taken,
+    };
+
+    return {
+      total: 1,
+      items: [resultTicket],
     };
   }
 }
