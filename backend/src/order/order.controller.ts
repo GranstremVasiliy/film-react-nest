@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/order.dto';
 
@@ -7,8 +7,8 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post('order')
+  @HttpCode(200)
   createOrder(@Body() dto: CreateOrderDto) {
-    console.log('createOrder dto:', dto);
     return this.orderService.createOrder(dto);
   }
 }

@@ -1,25 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Film, FilmDocument } from './film.schema';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FilmDto, ScheduleItemDto } from './dto/films.dto';
+import { FilmsRepository } from '../repository/films.repository';
 
 @Injectable()
 export class FilmsService {
-  constructor(
-    @InjectModel(Film.name)
-    private readonly filmModel: Model<FilmDocument>,
-  ) {}
+  constructor(private readonly filmsRepository: FilmsRepository) {}
 
-  async getAllFilms(): Promise<FilmDto[]> {
-    const films = await this.filmModel.find();
-    return films as FilmDto[];
+  async getFilms(): Promise<FilmDto[]> {
+    return this.filmsRepository.findAll();
   }
-
-  async getScheduleByFilmId(filmId: string): Promise<ScheduleItemDto[] | null> {
-    const film = await this.filmModel.findOne({ id: filmId });
+  async getScheduleByFilmId(filmId: string): Promise<ScheduleItemDto[]> {
+    const film = await this.filmsRepository.findById(filmId);
     if (!film) {
-      return null;
+      throw new NotFoundException(`Филь не найден`);
     }
     return film.schedule as ScheduleItemDto[];
   }

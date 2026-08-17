@@ -3,54 +3,57 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Film, FilmDocument } from '../films/film.schema';
 import { CreateOrderDto } from './dto/order.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { OrderRepository } from '../repository/order.repository';
 
 @Injectable()
 export class OrderService {
-  constructor(
-    @InjectModel(Film.name)
-    private readonly filmModel: Model<FilmDocument>,
-  ) {}
+  constructor(private readonly orderRepository: OrderRepository) {}
   async createOrder(dto: CreateOrderDto) {
-    const ticket = dto.tickets[0];
-    if (!ticket) {
+    const tickets = dto.tickets;
+
+    if (!Array.isArray(tickets) || tickets.length === 0) {
       throw new BadRequestException('Нет билетов в заказе');
     }
+    const resultTickets = [];
 
-    const { film, session, row, seat, daytime, price } = ticket;
-    const place = `${row}:${seat}`;
+    for (const ticket of tickets) {
+      const { film, session, row, seat, daytime, price } = ticket;
+      const place = `${row}:${seat}`;
+      const filmDoc = await this.orderRepository.findFilmById(film);
 
-    const filmDoc = await this.filmModel.findOne({ id: film });
+      if (!filmDoc) {
+        throw new NotFoundException('Фильм не найден');
+      }
 
-    if (!filmDoc) {
-      throw new NotFoundException('Фильм не найден');
+      const sessionDoc = filmDoc.schedule.find((s) => s.id === session);
+      if (!sessionDoc) {
+        throw new NotFoundException('Сеанс не найден');
+      }
+
+      const alreadyTaken = sessionDoc.taken.includes(place);
+      if (alreadyTaken) {
+        throw new BadRequestException('Место уже занято');
+      }
+
+      sessionDoc.taken.push(place);
+      await this.orderRepository.saveFilm(filmDoc);
+
+      resultTickets.push({
+        id: uuidv4(),
+        film,
+        session,
+        row,
+        seat,
+        daytime,
+        price,
+      });
     }
-    const sessionDoc = filmDoc.schedule.find((s) => s.id === session);
-    if (!sessionDoc) {
-      throw new NotFoundException('Сеанс не найден');
-    }
-    const alreadyTaken = sessionDoc.taken.includes(place);
-    if (alreadyTaken) {
-      throw new BadRequestException('Место уже занято');
-    }
-
-    sessionDoc.taken.push(place);
-    await filmDoc.save();
-    const resultTicket = {
-      film,
-      session,
-      row,
-      seat,
-      daytime,
-      price,
-    };
 
     return {
-      total: 1,
-      items: [resultTicket],
+      total: resultTickets.length,
+      items: resultTickets,
     };
   }
 }

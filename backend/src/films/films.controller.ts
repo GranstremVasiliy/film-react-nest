@@ -1,5 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { FilmsService } from './films.service';
+import { toFilmListItemDto } from './dto/films.dto';
 
 @Controller()
 export class FilmsController {
@@ -7,10 +8,11 @@ export class FilmsController {
 
   @Get('films')
   async getFilms() {
-    const films = await this.filmsService.getAllFilms();
+    const films = await this.filmsService.getFilms();
+    const items = films.map(toFilmListItemDto);
     return {
-      total: films.length,
-      items: films,
+      total: items.length,
+      items: items,
     };
   }
 
