@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/order.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { OrderRepository } from '../repository/order.repository';
 
 @Injectable()
@@ -41,7 +41,7 @@ export class OrderService {
       await this.orderRepository.saveFilm(filmDoc);
 
       resultTickets.push({
-        id: uuidv4(),
+        id: randomUUID(),
         film,
         session,
         row,
