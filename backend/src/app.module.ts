@@ -4,16 +4,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
 import * as path from 'node:path';
 import { configProvider } from './app.config.provider';
-import { FilmsController } from './films/films.controller';
-import { OrderController } from './order/order.controller';
-import { OrderService } from './order/order.service';
-import { FilmsService } from './films/films.service';
 import { Film, FilmSchema } from './films/film.schema';
 import { ConfigService } from '@nestjs/config';
-import { FilmsRepository } from './repository/films.repository';
-import { MongoFilmsRepository } from './repository/mongo-films.repository';
-import { OrderRepository } from './repository/order.repository';
-import { MongoOrderRepository } from './repository/mongo-order.repository';
+import { OrderModule } from './order/order.module';
+import { FilmsModule } from './films/films.module';
 
 @Module({
   imports: [
@@ -34,14 +28,9 @@ import { MongoOrderRepository } from './repository/mongo-order.repository';
       serveRoot: '/content/afisha',
       serveStaticOptions: { index: false },
     }),
+    FilmsModule,
+    OrderModule,
   ],
-  controllers: [FilmsController, OrderController],
-  providers: [
-    configProvider,
-    FilmsService,
-    OrderService,
-    { provide: FilmsRepository, useClass: MongoFilmsRepository },
-    { provide: OrderRepository, useClass: MongoOrderRepository },
-  ],
+  providers: [configProvider],
 })
 export class AppModule {}

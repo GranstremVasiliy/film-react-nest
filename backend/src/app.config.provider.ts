@@ -5,7 +5,7 @@ export const configProvider = {
   inject: [ConfigService],
   useFactory: (config: ConfigService): AppConfig => ({
     database: {
-      driver: 'mongodb',
+      driver: config.get<string>('DATABASE_DRIVER'),
       url: config.get<string>('DATABASE_URL') ?? '',
     },
   }),
