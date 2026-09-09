@@ -15,20 +15,26 @@ import { FilmsModule } from './films/films.module';
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        host: config.get<string>('POSTGRES_HOST'),
-        port: Number(config.get<string>('POSTGRES_PORT', '5432')),
-        username: config.get<string>('POSTGRES_USER'),
-        password: config.get<string>('POSTGRES_PASSWORD'),
-        database: config.get<string>('POSTGRES_DB'),
-        autoLoadEntities: true,
-        synchronize: false,
-      }),
+      useFactory: (config: ConfigService) => {
+        const dbUrl = new URL(
+          config.get<string>('DATABASE_URL') ||
+            'postgres://prac:prac123@localhost:5432/prac',
+        );
+
+        return {
+          type: 'postgres' as const,
+          host: dbUrl.hostname,
+          port: parseInt(dbUrl.port || '5432', 10),
+          database: dbUrl.pathname.slice(1),
+          username: decodeURIComponent(dbUrl.username),
+          password: decodeURIComponent(dbUrl.password),
+          autoLoadEntities: true,
+          synchronize: false,
+        };
+      },
     }),
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'public', 'content', 'afisha'),
-
       serveRoot: '/content/afisha',
       serveStaticOptions: {
         index: false,
