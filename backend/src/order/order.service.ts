@@ -21,24 +21,18 @@ export class OrderService {
     for (const ticket of tickets) {
       const { film, session, row, seat, daytime, price } = ticket;
       const place = `${row}:${seat}`;
-      const filmDoc = await this.orderRepository.findFilmById(film);
-
-      if (!filmDoc) {
-        throw new NotFoundException('Фильм не найден');
-      }
-
-      const sessionDoc = filmDoc.schedule.find((s) => s.id === session);
-      if (!sessionDoc) {
+      const schedule = await this.orderRepository.findScheduleById(session);
+      if (!schedule) {
         throw new NotFoundException('Сеанс не найден');
       }
 
-      const alreadyTaken = sessionDoc.taken.includes(place);
+      const alreadyTaken = schedule.taken.includes(place);
       if (alreadyTaken) {
         throw new BadRequestException('Место уже занято');
       }
 
-      sessionDoc.taken.push(place);
-      await this.orderRepository.saveFilm(filmDoc);
+      const updatedTaken = [...schedule.taken, place];
+      await this.orderRepository.saveTaken(session, updatedTaken);
 
       resultTickets.push({
         id: randomUUID(),
