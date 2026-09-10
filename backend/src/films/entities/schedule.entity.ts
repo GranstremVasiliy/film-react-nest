@@ -23,13 +23,10 @@ export class ScheduleEntity {
 
   @Column({
     type: 'text',
-    transformer: {
-      to: (value?: string[]) => (value ?? []).join(','),
-      from: (value: string | null) =>
-        value ? value.split(',').filter(Boolean) : [],
-    },
+    array: true,
   })
   taken!: string[];
+
   @ManyToOne(() => FilmEntity, (film) => film.schedule)
   @JoinColumn({ name: 'filmId' })
   film!: FilmEntity;

@@ -4,6 +4,7 @@ import {
   ArrayMinSize,
   IsString,
   IsInt,
+  IsUUID,
   Min,
   ValidateNested,
   IsOptional,
@@ -11,7 +12,7 @@ import {
 import { Type } from 'class-transformer';
 
 export class TicketDto {
-  @IsString()
+  @IsUUID()
   film!: string;
   @IsString()
   session!: string;

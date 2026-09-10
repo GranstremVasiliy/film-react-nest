@@ -16,38 +16,43 @@ export class OrderService {
     if (!Array.isArray(tickets) || tickets.length === 0) {
       throw new BadRequestException('Нет билетов в заказе');
     }
-    const resultTickets = [];
 
-    for (const ticket of tickets) {
-      const { film, session, row, seat, daytime, price } = ticket;
-      const place = `${row}:${seat}`;
-      const schedule = await this.orderRepository.findScheduleById(session);
-      if (!schedule) {
-        throw new NotFoundException('Сеанс не найден');
+    return this.orderRepository.transaction(async (repository) => {
+      const resultTickets = [];
+
+      for (const ticket of tickets) {
+        const { film, session, row, seat, daytime, price } = ticket;
+        const place = `${row}:${seat}`;
+
+        const schedule = await repository.findScheduleById(session);
+
+        if (!schedule) {
+          throw new NotFoundException('Сеанс не найден');
+        }
+
+        if (schedule.taken.includes(place)) {
+          throw new BadRequestException('Место уже занято');
+        }
+
+        const updatedTaken = [...schedule.taken, place];
+
+        await repository.saveTaken(session, updatedTaken);
+
+        resultTickets.push({
+          id: randomUUID(),
+          film,
+          session,
+          row,
+          seat,
+          daytime,
+          price,
+        });
       }
 
-      const alreadyTaken = schedule.taken.includes(place);
-      if (alreadyTaken) {
-        throw new BadRequestException('Место уже занято');
-      }
-
-      const updatedTaken = [...schedule.taken, place];
-      await this.orderRepository.saveTaken(session, updatedTaken);
-
-      resultTickets.push({
-        id: randomUUID(),
-        film,
-        session,
-        row,
-        seat,
-        daytime,
-        price,
-      });
-    }
-
-    return {
-      total: resultTickets.length,
-      items: resultTickets,
-    };
+      return {
+        total: resultTickets.length,
+        items: resultTickets,
+      };
+    });
   }
 }

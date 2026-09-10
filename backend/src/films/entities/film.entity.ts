@@ -14,11 +14,7 @@ export class FilmEntity {
 
   @Column({
     type: 'text',
-    transformer: {
-      to: (value?: string[]) => (value ?? []).join(','),
-      from: (value: string | null) =>
-        value ? value.split(',').filter(Boolean) : [],
-    },
+    array: true,
   })
   tags!: string[];
 

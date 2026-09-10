@@ -13,21 +13,19 @@ import { FilmsModule } from './films/films.module';
       isGlobal: true,
       cache: true,
     }),
+
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const dbUrl = new URL(
-          config.get<string>('DATABASE_URL') ||
-            'postgres://prac:prac123@localhost:5432/prac',
-        );
+        const dbUrl = new URL(config.getOrThrow<string>('DATABASE_URL'));
 
         return {
-          type: 'postgres' as const,
+          type: config.getOrThrow<'postgres'>('DATABASE_DRIVER'),
           host: dbUrl.hostname,
-          port: parseInt(dbUrl.port || '5432', 10),
-          database: dbUrl.pathname.slice(1),
-          username: decodeURIComponent(dbUrl.username),
-          password: decodeURIComponent(dbUrl.password),
+          port: Number(dbUrl.port || 5432),
+          database: dbUrl.pathname.replace(/^\//, ''),
+          username: config.getOrThrow<string>('DATABASE_USERNAME'),
+          password: config.getOrThrow<string>('DATABASE_PASSWORD'),
           autoLoadEntities: true,
           synchronize: false,
         };
