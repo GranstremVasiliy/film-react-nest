@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import * as path from 'node:path';
 import { configProvider } from './app.config.provider';
-import { Film, FilmSchema } from './films/film.schema';
-import { ConfigService } from '@nestjs/config';
 import { OrderModule } from './order/order.module';
 import { FilmsModule } from './films/films.module';
 
@@ -15,21 +13,33 @@ import { FilmsModule } from './films/films.module';
       isGlobal: true,
       cache: true,
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('DATABASE_URL'),
-      }),
+
+    TypeOrmModule.forRootAsync({
       inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const dbUrl = new URL(config.getOrThrow<string>('DATABASE_URL'));
+
+        return {
+          type: config.getOrThrow<'postgres'>('DATABASE_DRIVER'),
+          host: dbUrl.hostname,
+          port: Number(dbUrl.port || 5432),
+          database: dbUrl.pathname.replace(/^\//, ''),
+          username: config.getOrThrow<string>('DATABASE_USERNAME'),
+          password: config.getOrThrow<string>('DATABASE_PASSWORD'),
+          autoLoadEntities: true,
+          synchronize: false,
+        };
+      },
     }),
-    MongooseModule.forFeature([{ name: Film.name, schema: FilmSchema }]),
     ServeStaticModule.forRoot({
-      rootPath: path.resolve(__dirname, '..', 'public', 'content', 'afisha'),
+      rootPath: path.join(__dirname, '..', 'public', 'content', 'afisha'),
       serveRoot: '/content/afisha',
-      serveStaticOptions: { index: false },
+      serveStaticOptions: {
+        index: false,
+      },
     }),
-    FilmsModule,
     OrderModule,
+    FilmsModule,
   ],
   providers: [configProvider],
 })

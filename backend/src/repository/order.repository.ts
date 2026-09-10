@@ -1,6 +1,9 @@
-import { FilmDocument } from '../films/film.schema';
+import { ScheduleItemDto } from '../films/dto/films.dto';
 
 export abstract class OrderRepository {
-  abstract findFilmById(id: string): Promise<FilmDocument | null>;
-  abstract saveFilm(film: FilmDocument): Promise<FilmDocument>;
+  abstract findScheduleById(id: string): Promise<ScheduleItemDto | null>;
+  abstract saveTaken(scheduleId: string, taken: string[]): Promise<void>;
+  abstract transaction<T>(
+    fn: (repository: OrderRepository) => Promise<T>,
+  ): Promise<T>;
 }

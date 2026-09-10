@@ -1,20 +1,23 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { FilmsController } from './films.controller';
 import { FilmsService } from './films.service';
-import { Film, FilmSchema } from './film.schema';
+import { FilmEntity } from './entities/film.entity';
+import { ScheduleEntity } from './entities/schedule.entity';
 import { FilmsRepository } from '../repository/films.repository';
-import { MongoFilmsRepository } from '../repository/mongo-films.repository';
+import { PostgresFilmsRepository } from '../repository/postgres-films.repository';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Film.name, schema: FilmSchema }]),
-  ],
+  imports: [TypeOrmModule.forFeature([FilmEntity, ScheduleEntity])],
   controllers: [FilmsController],
   providers: [
     FilmsService,
-    { provide: FilmsRepository, useClass: MongoFilmsRepository },
+    PostgresFilmsRepository,
+    {
+      provide: FilmsRepository,
+      useClass: PostgresFilmsRepository,
+    },
   ],
-  exports: [MongooseModule],
+  exports: [FilmsRepository],
 })
 export class FilmsModule {}
