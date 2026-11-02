@@ -14,6 +14,6 @@ export class FilmsService {
     if (!film) {
       throw new NotFoundException(`Филь не найден`);
     }
-    return film.schedule as ScheduleItemDto[];
+    return this.filmsRepository.findScheduleByFilmId(filmId);
   }
 }

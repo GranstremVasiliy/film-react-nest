@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import { FilmsService } from './films.service';
 import { toFilmListItemDto } from './dto/films.dto';
 
@@ -17,7 +17,7 @@ export class FilmsController {
   }
 
   @Get('films/:id/schedule')
-  async getFilmSchedule(@Param('id') id: string) {
+  async getFilmSchedule(@Param('id', new ParseUUIDPipe()) id: string) {
     const schedule = await this.filmsService.getScheduleByFilmId(id);
     return {
       total: schedule.length,
