@@ -6,6 +6,9 @@ import * as path from 'node:path';
 import { configProvider } from './app.config.provider';
 import { OrderModule } from './order/order.module';
 import { FilmsModule } from './films/films.module';
+import { DevLogger } from './logger/dev.logger';
+import { JsonLogger } from './logger/json.logger';
+import { TSKVLogger } from './logger/tskv.logger';
 
 @Module({
   imports: [
@@ -41,6 +44,6 @@ import { FilmsModule } from './films/films.module';
     OrderModule,
     FilmsModule,
   ],
-  providers: [configProvider],
+  providers: [configProvider, DevLogger, JsonLogger, TSKVLogger],
 })
 export class AppModule {}
