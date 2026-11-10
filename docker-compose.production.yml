@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: prac
+      POSTGRES_USER: prac
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/test/prac.init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/test/prac.films.sql:/docker-entrypoint-initdb.d/02-films.sql:ro
+      - ./backend/test/prac.shedules.sql:/docker-entrypoint-initdb.d/03-schedules.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prac -d prac"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - app_network
+
+  backend:
+    image: ghcr.io/granstremvasiliy/film-backend:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_DRIVER: postgres
+      DATABASE_URL: postgres://postgres:5432/prac
+      DATABASE_USERNAME: prac
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      LOG_FORMAT: json
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  frontend:
+    image: ghcr.io/granstremvasiliy/film-frontend:latest
+    restart: "no"
+    volumes:
+      - frontend_dist:/frontend
+    networks:
+      - app_network
+
+  nginx:
+    image: ghcr.io/granstremvasiliy/film-nginx:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      frontend:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
+    networks:
+      - app_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?Set PGADMIN_EMAIL in .env}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?Set PGADMIN_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  frontend_dist:
+
+networks:
+  app_network:
+    driver: bridge
