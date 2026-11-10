@@ -2,10 +2,8 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: prac
-      POSTGRES_USER: prac
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in root .env}
+    env_file:
+      - .env
     volumes:
       - postgres_data_seeded:/var/lib/postgresql/data
       - ./backend/test/prac.init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro

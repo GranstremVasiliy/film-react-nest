@@ -5,7 +5,7 @@
 ## Адреса
 
 - Сайт: http://film-nest.duckdns.org
-- API: http://film-nest.duckdns.org/api/afisha
+- API — список фильмов: http://film-nest.duckdns.org/api/afisha/films
 
 ## Стек
 
@@ -25,7 +25,7 @@ React, TypeScript, Vite, NestJS, TypeORM, PostgreSQL, Docker Compose, nginx, pgA
 Необходимы Git, Docker и Docker Compose.
 
 ```bash
-git clone --branch review-2 [https://github.com/GranstremVasiliy/film-react-nest.git](https://github.com/GranstremVasiliy/film-react-nest.git)
+git clone --branch review-2 https://github.com/GranstremVasiliy/film-react-nest.git
 cd film-react-nest
 ```
 

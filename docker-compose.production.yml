@@ -63,9 +63,8 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?Set PGADMIN_EMAIL in .env}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?Set PGADMIN_PASSWORD in .env}
+    env_file:
+      - .env
     ports:
       - "127.0.0.1:8080:80"
     volumes:

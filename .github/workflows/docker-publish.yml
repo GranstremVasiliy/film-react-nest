@@ -3,6 +3,7 @@ name: Build and publish Docker images
 on:
   push:
     branches:
+      - main
       - review-2
   workflow_dispatch:
 
