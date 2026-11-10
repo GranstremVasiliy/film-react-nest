@@ -2,8 +2,10 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: prac
+      POSTGRES_USER: prac
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in root .env}
     volumes:
       - postgres_data_seeded:/var/lib/postgresql/data
       - ./backend/test/prac.init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
@@ -24,14 +26,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: "3000"
-      DATABASE_DRIVER: postgres
-      DATABASE_URL: postgres://postgres:5432/prac
-      DATABASE_USERNAME: prac
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in root .env}
-      LOG_FORMAT: json
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
